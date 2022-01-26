@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-inline std::string sPathToSearch{"./"};
+inline std::string sPathToSearch{"/tmp/test"};
 
 namespace fs = std::filesystem;
 

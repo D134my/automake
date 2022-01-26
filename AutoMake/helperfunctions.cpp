@@ -1,7 +1,9 @@
 #include "helperfunctions.hpp"
 #include "scan.hpp"
 
-bool bQueryContants(std::regex const &regex,
+namespace fs = std::filesystem;
+
+bool bQueryContents(std::regex const &regex,
                     std::vector<std::string> &vContents) {
 
   std::uint8_t uContentsSize = vContents.size();
@@ -13,8 +15,7 @@ bool bQueryContants(std::regex const &regex,
         vContents.push_back(std::string(file.path().filename()));
       }
     }
-
-    // if size of vector was same as uContentSize which means no concent founded
+    // if no file founded return false
     if (vContents.size() == uContentsSize)
       return false;
 
