@@ -1,9 +1,14 @@
+#include "scan.hpp"
 #include <iostream>
 
-using namespace std;
+int main() {
+  Headers h;
+  h.DoCreate();
+  CPPFiles f;
+  f.DoCreate();
 
-int main()
-{
-    cout << "Hello World!" << endl;
-    return 0;
+  CMakeFile c;
+  c.DoCreate();
+  c.DoEdit();
+  return 0;
 }
