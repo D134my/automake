@@ -2,10 +2,11 @@
 #include "scan.hpp"
 #include <fstream>
 
+std::string sAllFiles;
 namespace fs = std::filesystem;
 
 bool bQueryContents(std::regex const &Regex,
-                    std::vector<std::string> &vContents) {
+                    std::vector<std::string> &vContents, TypeOfContents Type) {
 
   std::uint8_t uContentsSize = vContents.size();
 
@@ -14,6 +15,15 @@ bool bQueryContents(std::regex const &Regex,
     for (auto const &file : fs::recursive_directory_iterator(sPathToSearch)) {
       if (std::regex_search(std::string(file.path().filename()), Regex)) {
         vContents.push_back(std::string(file.path().filename()));
+        if (Type == TypeOfContents::HeaderFile) {
+          sAllFiles +=
+              std::string("./include/") + std::string(file.path().filename());
+          sAllFiles += " ";
+        } else if (Type == TypeOfContents::CppFile) {
+          sAllFiles +=
+              std::string("./src/") + std::string(file.path().filename());
+          sAllFiles += " ";
+        }
       }
     }
     // if no file founded return false
@@ -70,13 +80,14 @@ void EditContents(std::string const &sAddressOfContents,
        fs::recursive_directory_iterator(sAddressOfContents)) {
     if (std::regex_search(std::string(file.path().filename()), Regex)) {
       if (Type == TypeOfContents::CmakeFile) {
-        EditCmakeFiles(sAddressOfContents, ContentMode);
+        EditCmakeFiles(sAddressOfContents + std::string(file.path().filename()),
+                       ContentMode);
       }
     }
   }
 }
 
-auto EditCmakeFiles(std::string const &sAddressOfCmake, Mode CmakeMode) {
+void EditCmakeFiles(std::string const &sAddressOfCmake, Mode CmakeMode) {
   std::string sProjectName{"TestProject"};
   std::string sProjectDescription{"test c++ project"};
   float fProjectVersion{1.0};
@@ -84,11 +95,7 @@ auto EditCmakeFiles(std::string const &sAddressOfCmake, Mode CmakeMode) {
   std::string sExecName{"TestApp"};
   std::string sExtraLibs{"no"};
 
-  if (CmakeMode == Mode::quick) { // return default arguments
-    // return std::make_tuple(sProjectName, sProjectDescription,
-    // fProjectVersion,
-    //                   fCmakeVersion, sExecName, sExtraLibs);
-  } else if (CmakeMode == Mode::norm) {
+  if (CmakeMode == Mode::norm) {
 
     try {
 
@@ -107,12 +114,25 @@ auto EditCmakeFiles(std::string const &sAddressOfCmake, Mode CmakeMode) {
       Lippincott();
       std::exit(EXIT_FAILURE);
     }
+  }
+  try {
+    std::ofstream of(sAddressOfCmake);
+    of << "cmake_minimum_required(VERSION " << fCmakeVersion << " )"
+       << std::endl;
+    of << "project( " << sProjectName << " VERSION " << fProjectVersion
+       << " DESCRIPTION " << '\"' << sProjectDescription << '\"'
+       << " LANGUAGES CXX )" << std::endl;
+    of << "set(CMAKE_CXX_STANDARD 20)" << std::endl;
+    of << "set(CMAKE_CXX_STANDARD_REQUIRED ON)" << std::endl;
+    of << "include_directories(include)" << std::endl;
+    of << "include_directories(src)" << std::endl;
+    of << "add_executable( " << sExecName << " " << sAllFiles << " )"
+       << std::endl;
 
-    // return std::make_tuple(sProjectName, sProjectDescription,
-    // fProjectVersion,
-    //                      fCmakeVersion, sExecName, sExtraLibs);
+    of.close();
 
-  } else {
+  } catch (...) {
+    Lippincott();
     std::exit(EXIT_FAILURE);
   }
 }
