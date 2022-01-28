@@ -2,6 +2,7 @@
 #define CATCH_ERRORS_H
 
 #include <iostream>
+//#include <source_location> stupid clang doesn't support this header yet
 
 inline void Lippincott() {
   try {

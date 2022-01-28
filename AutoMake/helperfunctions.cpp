@@ -100,22 +100,36 @@ void EditCmakeFiles(std::string const &sAddressOfCmake, Mode CmakeMode) {
     try {
 
       std::cout << "Project Name : ";
-      std::cin >> sProjectName;
+      std::getline(std::cin, sProjectName);
+      if (std::cin.fail() || std::cin.eof())
+        throw std::invalid_argument("Enter better project name !\n");
       std::cout << "\nProject Description : ";
-      std::cin >> sProjectDescription;
-      std::cout << "\n Project Version : ";
+      std::getline(std::cin, sProjectDescription);
+      if (std::cin.fail() || std::cin.eof())
+        throw std::invalid_argument("Enter better project description !\n");
+
+      std::cout << "\nProject Version : ";
       std::cin >> fProjectVersion;
+      if (std::cin.fail() || std::cin.eof())
+        throw std::invalid_argument("Enter a valid float number !\n");
+
       std::cout << "\nCmake Version : ";
       std::cin >> fCmakeVersion;
+      if (std::cin.fail() || std::cin.eof())
+        throw std::invalid_argument("Enter a valid float number  !\n");
       std::cout << "Extra Libs ? (Enter no if you don't have any) : ";
-      std::cin >> sExtraLibs;
+      std::getline(std::cin >> std::ws, sExtraLibs);
+      if (std::cin.fail() || std::cin.eof())
+        throw std::invalid_argument("Enter valid libs names !\n");
 
     } catch (...) {
       Lippincott();
       std::exit(EXIT_FAILURE);
     }
   }
+
   try {
+
     std::ofstream of(sAddressOfCmake);
     of << "cmake_minimum_required(VERSION " << fCmakeVersion << " )"
        << std::endl;
@@ -128,6 +142,11 @@ void EditCmakeFiles(std::string const &sAddressOfCmake, Mode CmakeMode) {
     of << "include_directories(src)" << std::endl;
     of << "add_executable( " << sExecName << " " << sAllFiles << " )"
        << std::endl;
+    if (sExtraLibs != "no" || sExtraLibs != "NO" || sExtraLibs != " " ||
+        sExtraLibs != "") {
+      of << "target_link_libraries( " << sExecName << " " << sExtraLibs << " )"
+         << std::endl;
+    }
 
     of.close();
 

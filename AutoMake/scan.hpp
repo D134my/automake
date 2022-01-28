@@ -69,7 +69,7 @@ private:
   std::string const sMoveCmakeFilesTo{sPathToSearch};
   std::regex const CmakeRegex{R"(CMakeLists.txt)"};
   std::vector<std::string> vAllCmakeFiles;
-  Mode CmakeMode{Mode::quick};
+  Mode CmakeMode{Mode::norm};
 };
 
 #endif // SCAN_HPP
