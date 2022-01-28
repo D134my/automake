@@ -1,3 +1,0 @@
-/home/ice/lab/automake/build-AutoMake-Desktop_Qt_6_2_2_GCC_64bit-Debug/CMakeFiles/rebuild_cache.dir
-/home/ice/lab/automake/build-AutoMake-Desktop_Qt_6_2_2_GCC_64bit-Debug/CMakeFiles/edit_cache.dir
-/home/ice/lab/automake/build-AutoMake-Desktop_Qt_6_2_2_GCC_64bit-Debug/CMakeFiles/AutoMake.dir
