@@ -8,7 +8,7 @@
 5= Reads your headers and detecet your external libs like thread and boost and ..  then links them to your project.
 ```
 
-##Usage
+## Usage
 ```
   'path' project path    'mode' quick|norm
   ```
