@@ -8,11 +8,11 @@ inline void Lippincott() {
   try {
     throw;
   } catch (std::runtime_error const &error) {
-    std::cerr << "runtime error !! " << error.what() << '\n';
+    std::cerr << "runtime error ! : " << error.what() << '\n';
   } catch (std::exception const &error) {
-    std::cerr << "exception error !! : " << error.what() << '\n';
+    std::cerr << "exception error ! : " << error.what() << '\n';
   } catch (...) {
-    std::cerr << "unknown error !!\n";
+    std::cerr << "unknown error !\n";
   }
 }
 #endif // CATCH_ERRORS_H
