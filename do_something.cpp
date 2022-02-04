@@ -1,4 +1,5 @@
 #include "do_something.hpp"
+
 #include <algorithm>
 #include <fstream>
 #include <map>
@@ -13,17 +14,17 @@ std::vector<std::string> vSingleFiles;
 std::vector<std::string> vSameFilesCpp;
 std::vector<std::string> vSameFilesHpp;
 
-void removeDuplicates(std::string &str) {
+void RemoveDuplicates(std::string& str) {
   std::set<char> S, Sd;
-  std::string reduced;
+  std::string sReduced;
 
-  for (char c : str) {
+  for (char& c : str) {
     if (S.insert(c).second)
-      reduced += c;
+      sReduced += c;
   }
 }
 
-Headers::Headers(std::string const &sAddressToSearch, PlayMode Mode) {
+Headers::Headers(std::string const& sAddressToSearch, PlayMode Mode) {
   this->sAddressToSearch = sAddressToSearch;
   this->sAddressOfHeaders =
       std::string(sAddressToSearch + "/*.hpp " + sAddressToSearch + +"/*.h ");
@@ -32,8 +33,7 @@ Headers::Headers(std::string const &sAddressToSearch, PlayMode Mode) {
 
 bool Headers::bQuery() {
   try {
-    int i{};
-    for (auto const &file :
+    for (auto const& file :
          fs::recursive_directory_iterator(sAddressToSearch)) {
       if (std::regex_search(std::string(file.path().filename()), reRegex)) {
         vContents.push_back(std::string(file.path().filename()));
@@ -48,7 +48,6 @@ bool Headers::bQuery() {
           sEchoCommand += file.path();
           std::system(sEchoCommand.c_str());
         }
-        i++;
       }
     }
 
@@ -63,7 +62,11 @@ bool Headers::bQuery() {
   return true;
 }
 
-bool Headers::bIsEmpty(std::string const &pFile) {
+bool Headers::bIsEmpty(std::string const& pFile) {
+  if (!fs::exists(pFile)) {
+    std::exit(0);
+  }
+
   return fs::file_size(pFile) == 0;
 }
 
@@ -116,19 +119,22 @@ void Headers::Create() {
 /////////////////////////////// CPPFiles
 /////////////////////////////////////////////
 
-CPPFiles::CPPFiles(std::string const &sAddressToSearch, PlayMode Mode) {
+CPPFiles::CPPFiles(std::string const& sAddressToSearch, PlayMode Mode) {
   this->sAddressToSearch = sAddressToSearch;
   this->sAddressOfCppFiles =
       std::string(sAddressToSearch + "/*.cpp " + sAddressToSearch + +"/*.cc ");
   this->sMoveTo = std::string(sAddressToSearch + "/src/");
 }
 
-bool CPPFiles::bIsEmpty(std::string const &pFile) {
+bool CPPFiles::bIsEmpty(std::string const& pFile) {
+  if (!fs::exists(pFile)) {
+    return false;
+  }
   return fs::file_size(pFile) == 0;
 }
 
 bool CPPFiles::bQuery() {
-  for (auto const &file : fs::recursive_directory_iterator(sAddressToSearch)) {
+  for (auto const& file : fs::recursive_directory_iterator(sAddressToSearch)) {
     if (std::regex_search(file.path().filename().string(), reRegex)) {
       vContents.push_back(file.path().filename().string());
 
@@ -148,7 +154,7 @@ bool CPPFiles::bQuery() {
       if (std::regex_search(sCppName, CppSm, Cppre)) {
         sExacCppFile = CppSm.str();
       }
-      for (auto const &file2 :
+      for (auto const& file2 :
            fs::recursive_directory_iterator(sAddressToSearch)) {
         if (std::regex_search(file2.path().filename().string(), reIsHeader)) {
           bool bAnyHeaderExist = true;
@@ -169,16 +175,16 @@ bool CPPFiles::bQuery() {
             }
           }
 
-        } // if it wasn't header ignore it !
-      }   // end of header search
-      for (auto const &f : vSameFilesCpp) {
+        }  // if it wasn't header ignore it !
+      }    // end of header search
+      for (auto const& f : vSameFilesCpp) {
       }
 
       vOtherFiles.push_back(file.path().filename());
 
-    } // end of if cpp founded
+    }  // end of if cpp founded
   }
-  for (auto const &f : vOtherFiles) {
+  for (auto const& f : vOtherFiles) {
     if (std::find(vSameFilesCpp.begin(), vSameFilesCpp.end(), f) ==
         vSameFilesCpp.end()) {
       vSingleFiles.push_back(f);
@@ -207,7 +213,7 @@ bool CPPFiles::bQuery() {
     } else {
       try {
         std::smatch sm;
-        for (auto const &test : vSingleFiles) {
+        for (auto const& test : vSingleFiles) {
           std::ifstream fi(sAddressToSearch + test);
           std::string sFileHasMain(std::istreambuf_iterator<char>(fi.rdbuf()),
                                    std::istreambuf_iterator<char>());
@@ -243,10 +249,10 @@ void CPPFiles::MoveToDir() {
   vSameFilesCpp.erase(std::unique(vSameFilesCpp.begin(), vSameFilesCpp.end()),
                       vSameFilesCpp.end());
 
-  for (auto const &alone : vSingleFiles) {
+  for (auto const& alone : vSingleFiles) {
     sAllSingleFiles += alone + " ";
   }
-  for (auto const &cl : vSameFilesCpp) {
+  for (auto const& cl : vSameFilesCpp) {
     sAllClass += cl + " ";
   }
   std::cout << "\n\nclass " << sAllClass << "\n single " << sAllSingleFiles
@@ -294,14 +300,14 @@ void CPPFiles::Create() {
 
 /////////////////// CmakeFiles ////////////////////
 
-CmakeFiles::CmakeFiles(std::string const &sAddressToSearch, PlayMode Mode) {
+CmakeFiles::CmakeFiles(std::string const& sAddressToSearch, PlayMode Mode) {
   this->sAddressToSearch = sAddressToSearch;
   this->sAddressOfCMakeFiles = std::string(sAddressToSearch + "CMakeLists.txt");
   this->sMoveTo = std::string(sAddressToSearch);
 }
 
 bool CmakeFiles::bQuery() {
-  for (auto const &file : fs::recursive_directory_iterator(sAddressToSearch)) {
+  for (auto const& file : fs::recursive_directory_iterator(sAddressToSearch)) {
     if (std::regex_search(std::string(file.path().filename()), reRegex)) {
       vContents.push_back(std::string(file.path().filename()));
     }
@@ -312,24 +318,22 @@ bool CmakeFiles::bQuery() {
   return true;
 }
 
-bool CmakeFiles::bIsEmpty(std::string const &pFile) {
+bool CmakeFiles::bIsEmpty(std::string const& pFile) {
   return fs::file_size(pFile) == 0;
 }
 
 void CmakeFiles::WriteCmake() {
   auto cmake = std::make_unique<CmakeFiles>(sAddressToSearch);
   if (!cmake->bQuery()) {
-
     std::string sProjectName{"TestProject"};
     std::string sProjectDescription{"test c++ project"};
     float fProjectVersion{1.0};
     float fCmakeVersion{3.5};
     std::string sExecName{"TestApp"};
-    std::string sExtraLibs{"no"};
+    std::string sExtraLibs;
 
     if (pmMode == PlayMode::norm) {
       try {
-
         std::cout << "Project Name : ";
         std::getline(std::cin, sProjectName);
         if (std::cin.fail() || std::cin.eof())
@@ -361,7 +365,6 @@ void CmakeFiles::WriteCmake() {
       }
     }
     try {
-
       /*
     of << "cmake_minimum_required(VERSION " << fCmakeVersion << " )"
        << std::endl;
@@ -380,6 +383,13 @@ void CmakeFiles::WriteCmake() {
          << " )" << std::endl;
 */
 
+      for (std::size_t i{}; i < vLibs.size(); ++i) {
+        auto& [name, lib, res] = vLibs.at(i);
+        if (res == true)
+          sExtraLibs += lib + " ";
+      }
+
+      std::cout << "extra libs : " << sExtraLibs << std::endl;
       std::ofstream of1(sAddressOfCMakeFiles);
       of1 << "cmake_minimum_required(VERSION " << fCmakeVersion << " )"
           << std::endl;
@@ -400,7 +410,10 @@ void CmakeFiles::WriteCmake() {
       std::ofstream of2(sAddressToSearch + "/src/CMakeLists.txt");
       of2 << "include_directories(../include)" << std::endl;
       of2 << "add_library(lib " << sAllClass << " )" << std::endl;
-      of2 << "add_executable( " << sExecName << " " << sAllSingleFiles << " )";
+      of2 << "add_executable( " << sExecName << " " << sAllSingleFiles << " )"
+          << std::endl;
+      of2 << "target_link_libraries(" << sExecName << " " << sExtraLibs << " )"
+          << std::endl;
 
     } catch (...) {
       Lippincott();
@@ -412,12 +425,49 @@ void CmakeFiles::WriteCmake() {
 void CmakeFiles::Create() {}
 void CmakeFiles::MoveToDir() {}
 
+void CmakeFiles::ExtraLibs() {
+  std::regex const Regex{R"(.*\.h|.*\.hpp.*\.cc|.*\.cpp)"};
+  std::smatch sm;
+  /*
+  vLibs.push_back({"boost", "boost_system"});
+  vLibs.push_back({"filesystem", "stdc++fs"});
+  vLibs.push_back({"thread", "pthread"});
+*/
+  std::string line;
+  int counter{};
+
+  for (auto const& file : fs::recursive_directory_iterator(sAddressToSearch)) {
+    if (std::regex_search(file.path().filename().string(), Regex)) {
+      try {
+        std::ifstream fileInput(file.path());
+        std::string line(std::istreambuf_iterator<char>(fileInput.rdbuf()),
+                         std::istreambuf_iterator<char>());
+        for (size_t i{}; i < vLibs.size(); ++i) {
+          auto& [name, lib, res] = vLibs.at(i);
+          if (line.find(name) != std::string::npos) {
+            std::cout << "found: " << name
+                      << " in file : " << file.path().filename().string()
+                      << std::endl;
+            res = true;
+
+          } else {
+          }
+          fileInput.close();
+        }
+      } catch (...) {
+        Lippincott();
+        std::exit(EXIT_FAILURE);
+      }
+    }
+  }
+}
+
 ////////////////////// Analyzer //////////////////////////
 /// \brief Analyzer::GetArgs
 /// \param Argc
 /// \param Argv
 
-void Analyzer::GetArgs(int Argc, char **Argv) {
+void Analyzer::GetArgs(int Argc, char** Argv) {
   /*
     if (Argc == 1) {
       auto header = std::make_unique<Headers>();
@@ -467,6 +517,7 @@ void Analyzer::GetArgs(int Argc, char **Argv) {
     c.MoveToDir();
     CmakeFiles cmake("/home/ice/hhh/", PlayMode::norm);
     cmake.bQuery();
+    cmake.ExtraLibs();
     cmake.WriteCmake();
   } catch (...) {
     Lippincott();
