@@ -4,6 +4,7 @@
 #include <fstream>
 #include <map>
 #include <ranges>
+#include <regex>
 #include <set>
 
 std::string sAllClass;
@@ -13,16 +14,6 @@ std::vector<std::string> vOtherFiles;
 std::vector<std::string> vSingleFiles;
 std::vector<std::string> vSameFilesCpp;
 std::vector<std::string> vSameFilesHpp;
-
-void RemoveDuplicates(std::string& str) {
-  std::set<char> S, Sd;
-  std::string sReduced;
-
-  for (char& c : str) {
-    if (S.insert(c).second)
-      sReduced += c;
-  }
-}
 
 Headers::Headers(std::string const& sAddressToSearch, PlayMode Mode) {
   this->sAddressToSearch = sAddressToSearch;
@@ -37,7 +28,6 @@ bool Headers::bQuery() {
          fs::recursive_directory_iterator(sAddressToSearch)) {
       if (std::regex_search(std::string(file.path().filename()), reRegex)) {
         vContents.push_back(std::string(file.path().filename()));
-        // sAllContents += sMoveTo + std::string(file.path().filename()) + " ";
 
         std::string path = file.path().c_str();
         if (bIsEmpty(path)) {
@@ -76,6 +66,7 @@ void Headers::MoveToDir() {
   if (h->bQuery()) {
     fs::create_directory(sMoveTo);
     std::system(sMvCommand.c_str());
+    std::system("clear");
   }
 
   else {
@@ -89,14 +80,21 @@ void Headers::Create() {
   std::size_t uiNumberOfHeaders;
   try {
     std::cin >> sAnswer;
+    if (std::cin.fail() || std::cin.eof())
+      throw std::invalid_argument("Enter exactly y or n !\n");
+
     if (sAnswer == "y") {
       std::cout << "how many header wanna create ? ";
       std::cin >> uiNumberOfHeaders;
+      if (std::cin.fail() || std::cin.eof())
+        throw std::invalid_argument("Enter an integer !\n");
       std::vector<std::string> vHeadersNames(uiNumberOfHeaders);
 
       for (std::size_t i{}; i < uiNumberOfHeaders; ++i) {
         std::cout << "\nEnter file name " << i << " : ";
         std::cin >> vHeadersNames.at(i);
+        if (std::cin.fail() || std::cin.eof())
+          throw std::invalid_argument("Enter better file name !\n");
       }
       for (std::size_t i{}; i < vHeadersNames.size(); i++)
         vContents.push_back(vHeadersNames.at(i));
@@ -109,7 +107,9 @@ void Headers::Create() {
         std::system(sEchoCommand.c_str());
       }
       MoveToDir();
-    }
+    } else if (sAnswer == "n") {
+    } else
+      throw std::invalid_argument("Enter exactly y or n !\n");
   } catch (...) {
     Lippincott();
     std::exit(EXIT_FAILURE);
@@ -134,36 +134,28 @@ bool CPPFiles::bIsEmpty(std::string const& pFile) {
 }
 
 bool CPPFiles::bQuery() {
+  // remove file extenstion
+  std::string sCppName;
+  std::string sExacCppFile;
+
+  std::string sHppName;
+  std::string sExacHppFile;
+  std::regex const reIsHeader{R"(.*\.h|.*\.hpp)"};
+  bool bAnyHeaderExist = false;
+
   for (auto const& file : fs::recursive_directory_iterator(sAddressToSearch)) {
     if (std::regex_search(file.path().filename().string(), reRegex)) {
       vContents.push_back(file.path().filename().string());
 
-      // remove file extenstion
-      std::regex Cppre(R"([^(?:.cpp|.cc)]*)");
-      std::string sCppName = file.path().filename();
-      std::string sExacCppFile;
-      std::smatch CppSm;
-
-      std::regex Hppre(R"([^(?:.hpp|.h)]*)");
-      std::string sHppName;
-      std::string sExacHppFile;
-      std::smatch HppSm;
-      std::regex const reIsHeader{R"(.*\.h|.*\.hpp)"};
-      bool bAnyHeaderExist = false;
-
-      if (std::regex_search(sCppName, CppSm, Cppre)) {
-        sExacCppFile = CppSm.str();
-      }
+      sCppName = file.path().filename().string();
+      sExacCppFile = file.path().stem().string();
       for (auto const& file2 :
            fs::recursive_directory_iterator(sAddressToSearch)) {
         if (std::regex_search(file2.path().filename().string(), reIsHeader)) {
           bool bAnyHeaderExist = true;
           sHppName = file2.path().filename().string();
-
-          if (std::regex_search(sHppName, HppSm, Hppre)) {
-            sExacHppFile = HppSm.str();
-          }
-
+          sExacHppFile = file2.path().stem().string();
+          file.path().stem().string();
           if (sExacCppFile == sExacHppFile) {
             vSameFilesCpp.push_back(file.path().filename());
             vSameFilesHpp.push_back(sHppName);
@@ -263,6 +255,7 @@ void CPPFiles::MoveToDir() {
   if (cpp->bQuery()) {
     fs::create_directory(sMoveTo);
     std::system(sMvCommand.c_str());
+    std::system("clear");
   }
 }
 
@@ -273,14 +266,22 @@ void CPPFiles::Create() {
   std::string sTouchCommand;
   try {
     std::cin >> sAnswer;
+    if (std::cin.fail() || std::cin.eof())
+      throw std::invalid_argument("enter exactly y or n !\n");
+
     if (sAnswer == "y") {
       std::cout << "how many cpp wanna create ? ";
       std::cin >> uiNumberOfCppFiles;
+      if (std::cin.fail() || std::cin.eof())
+        throw std::invalid_argument("Enter an integer !\n");
+
       std::vector<std::string> vCppNames(uiNumberOfCppFiles);
 
       for (std::size_t i{}; i < uiNumberOfCppFiles; ++i) {
         std::cout << "\nEnter file name " << i << " : ";
         std::cin >> vCppNames.at(i);
+        if (std::cin.fail() || std::cin.eof())
+          throw std::invalid_argument("Enter better file name !\n");
       }
       for (std::size_t i{}; i < vCppNames.size(); i++)
         vContents.push_back(vCppNames.at(i));
@@ -291,7 +292,10 @@ void CPPFiles::Create() {
         std::system(sTouchCommand.c_str());
       }
       // MoveToDir();
-    }
+    } else if (sAnswer == "n") {
+    } else
+      throw std::invalid_argument("enter exactly y or n !\n");
+
   } catch (...) {
     Lippincott();
     std::exit(EXIT_FAILURE);
@@ -304,6 +308,7 @@ CmakeFiles::CmakeFiles(std::string const& sAddressToSearch, PlayMode Mode) {
   this->sAddressToSearch = sAddressToSearch;
   this->sAddressOfCMakeFiles = std::string(sAddressToSearch + "CMakeLists.txt");
   this->sMoveTo = std::string(sAddressToSearch);
+  this->pmMode = Mode;
 }
 
 bool CmakeFiles::bQuery() {
@@ -323,7 +328,7 @@ bool CmakeFiles::bIsEmpty(std::string const& pFile) {
 }
 
 void CmakeFiles::WriteCmake() {
-  auto cmake = std::make_unique<CmakeFiles>(sAddressToSearch);
+  auto cmake = std::make_unique<CmakeFiles>(sAddressToSearch, pmMode);
   if (!cmake->bQuery()) {
     std::string sProjectName{"TestProject"};
     std::string sProjectDescription{"test c++ project"};
@@ -335,7 +340,7 @@ void CmakeFiles::WriteCmake() {
     if (pmMode == PlayMode::norm) {
       try {
         std::cout << "Project Name : ";
-        std::getline(std::cin, sProjectName);
+        std::getline(std::cin >> std::ws, sProjectName);
         if (std::cin.fail() || std::cin.eof())
           throw std::invalid_argument("Enter better project name !\n");
 
@@ -359,30 +364,17 @@ void CmakeFiles::WriteCmake() {
         if (std::cin.fail() || std::cin.eof())
           throw std::invalid_argument("Enter valid libs names !\n");
 
+        if (sExtraLibs == "no") {
+          sExtraLibs.clear();
+        }
+
       } catch (...) {
         Lippincott();
         std::exit(EXIT_FAILURE);
       }
     }
     try {
-      /*
-    of << "cmake_minimum_required(VERSION " << fCmakeVersion << " )"
-       << std::endl;
-    of << "project( " << sProjectName << " VERSION " << fProjectVersion
-       << " DESCRIPTION " << '\"' << sProjectDescription << '\"'
-       << " LANGUAGES CXX )" << std::endl;
-    of << "set(CMAKE_CXX_STANDARD 20)" << std::endl;
-    of << "set(CMAKE_CXX_STANDARD_REQUIRED ON)" << std::endl;
-    of << "include_directories(include)" << std::endl;
-    of << "include_directories(src)" << std::endl;
-    of << "add_executable( " << sExecName << " " << sAllContents << " )"
-       << std::endl;
-
-    if (sExtraLibs != "no") {
-      of << "target_link_libraries( " << sExecName << " " << sExtraLibs
-         << " )" << std::endl;
-*/
-
+      sExtraLibs += " ";
       for (std::size_t i{}; i < vLibs.size(); ++i) {
         auto& [name, lib, res] = vLibs.at(i);
         if (res == true)
@@ -412,9 +404,10 @@ void CmakeFiles::WriteCmake() {
       of2 << "add_library(lib " << sAllClass << " )" << std::endl;
       of2 << "add_executable( " << sExecName << " " << sAllSingleFiles << " )"
           << std::endl;
-      of2 << "target_link_libraries(" << sExecName << " " << sExtraLibs << " )"
-          << std::endl;
+      of2 << "target_link_libraries(" << sExecName << " lib " << sExtraLibs
+          << " )" << std::endl;
 
+      of2.close();
     } catch (...) {
       Lippincott();
       std::exit(EXIT_FAILURE);
@@ -428,13 +421,7 @@ void CmakeFiles::MoveToDir() {}
 void CmakeFiles::ExtraLibs() {
   std::regex const Regex{R"(.*\.h|.*\.hpp.*\.cc|.*\.cpp)"};
   std::smatch sm;
-  /*
-  vLibs.push_back({"boost", "boost_system"});
-  vLibs.push_back({"filesystem", "stdc++fs"});
-  vLibs.push_back({"thread", "pthread"});
-*/
   std::string line;
-  int counter{};
 
   for (auto const& file : fs::recursive_directory_iterator(sAddressToSearch)) {
     if (std::regex_search(file.path().filename().string(), Regex)) {
@@ -445,9 +432,9 @@ void CmakeFiles::ExtraLibs() {
         for (size_t i{}; i < vLibs.size(); ++i) {
           auto& [name, lib, res] = vLibs.at(i);
           if (line.find(name) != std::string::npos) {
-            std::cout << "found: " << name
+            std::cout << name
                       << " in file : " << file.path().filename().string()
-                      << std::endl;
+                      << " was found" << std::endl;
             res = true;
 
           } else {
@@ -464,16 +451,25 @@ void CmakeFiles::ExtraLibs() {
 
 ////////////////////// Analyzer //////////////////////////
 /// \brief Analyzer::GetArgs
-/// \param Argc
-/// \param Argv
 
 void Analyzer::GetArgs(int Argc, char** Argv) {
-  /*
+  try {
     if (Argc == 1) {
       auto header = std::make_unique<Headers>();
+      auto cpp = std::make_unique<CPPFiles>();
+      auto cmake = std::make_unique<CmakeFiles>();
+      header->bQuery();
       header->MoveToDir();
+      cpp->bQuery();
+      cpp->MoveToDir();
+      cmake->ExtraLibs();
+      cmake->WriteCmake();
+
+    } else if (Argc == 2) {
+      std::cout
+          << "first type keyword path and then type your path  . mode .\n";
     } else if (Argc > 2) {
-      std::string path{"./"};
+      std::string path{"/tmp/"};
       std::string mode;
       PlayMode RealMode{PlayMode::quick};
 
@@ -484,41 +480,47 @@ void Analyzer::GetArgs(int Argc, char** Argv) {
       auto iterResultSearch = std::find(vArgs.begin(), vArgs.end(), "path");
       if (iterResultSearch != vArgs.end()) {
         path = *(iterResultSearch + 1);
+      } else {
+        std::cout << "default path  .\n";
       }
 
       iterResultSearch = std::find(vArgs.begin(), vArgs.end(), "mode");
       if (iterResultSearch != vArgs.end()) {
         mode = *(iterResultSearch + 1);
-      }
+      } else
+        std::cout << "default mode \n";
 
       if (!mode.empty()) {
         if (mode == "norm") {
           RealMode = PlayMode::norm;
-        }
+        } else
+          RealMode = PlayMode::quick;
       }
       auto header = std::make_unique<Headers>(path, RealMode);
-      header->MoveToDir();
+      auto cpp = std::make_unique<CPPFiles>(path, RealMode);
+      auto cmake = std::make_unique<CmakeFiles>(path, RealMode);
+
       if (RealMode == PlayMode::norm) {
         header->Create();
+        header->bQuery();
         header->MoveToDir();
+        cpp->Create();
+        cpp->bQuery();
+        cpp->MoveToDir();
+        cmake->bQuery();
+        cmake->ExtraLibs();
+        cmake->WriteCmake();
+      }
+
+      if (RealMode == PlayMode::quick) {
+        header->bQuery();
+        header->MoveToDir();
+        cpp->bQuery();
+        cpp->MoveToDir();
+        cmake->ExtraLibs();
+        cmake->WriteCmake();
       }
     }
-    */
-  try {
-    CPPFiles c("/home/ice/hhh/");
-    Headers h("/home/ice/hhh/");
-
-    //   h.Create();
-    h.bQuery();
-    h.MoveToDir();
-
-    // c.Create();
-    c.bQuery();
-    c.MoveToDir();
-    CmakeFiles cmake("/home/ice/hhh/", PlayMode::norm);
-    cmake.bQuery();
-    cmake.ExtraLibs();
-    cmake.WriteCmake();
   } catch (...) {
     Lippincott();
     std::exit(EXIT_FAILURE);

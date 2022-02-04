@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.10)
-
-project(AutoMake LANGUAGES CXX)
-
+cmake_minimum_required(VERSION 3.5 )
+project( AutoMake VERSION 1 DESCRIPTION "AutoMake is my C++ project" LANGUAGES CXX )
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-add_executable(AutoMake main.cpp catch_errors.hpp typeofcontents.h do_something.cpp do_something.hpp )
-target_link_libraries(AutoMake stdc++fs)
+if(MSVC)
+      add_compile_options(/W4 /WX)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+add_subdirectory(src)

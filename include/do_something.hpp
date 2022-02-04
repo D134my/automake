@@ -67,7 +67,7 @@ class CmakeFiles : public AllContents {
   std::string sAddressOfCMakeFiles;
   std::string sMoveTo;
   std::regex const reRegex{R"(CMakeLists.txt)"};
-  PlayMode pmMode;
+  PlayMode pmMode = PlayMode::norm;
   static inline std::vector<std::string> vContents;
   std::vector<std::tuple<std::string, std::string, bool>> vLibs{
       {"boost", "boost_system", false},
